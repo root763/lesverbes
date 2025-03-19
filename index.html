@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>French Conjugation Practice</title>
+  
+  <!-- React and ReactDOM -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="container"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    const FrenchConjugationApp = () => {
+      const [currentPrompt, setCurrentPrompt] = useState(null);
+      const [userAnswer, setUserAnswer] = useState('');
+      const [feedback, setFeedback] = useState(null);
+      const [isCorrect, setIsCorrect] = useState(false);
+      const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+
+      // Sample verb database organized by categories
+      const verbDatabase = {
+        "regular-er": [
+	  {
+	    infinitive: "aimer",
+	    translation: "to like/love",
+	    conjugations: {
+	      "je": "aime",
+	      "tu": "aimes",
+	      "il/elle/on": "aime",
+	      "nous": "aimons",
+	      "vous": "aimez",
+	      "ils/elles": "aiment"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "les films romantiques.", pronunciation: "/ɛm/" },
+	      { subject: "tu", prefix: "", suffix: "le café sucré.", pronunciation: "/ɛm/" },
+	      { subject: "on", prefix: "", suffix: "ça quand il fait beau.", pronunciation: "/ɛm/" },
+	      { subject: "nous", prefix: "", suffix: "partager de bons moments.", pronunciation: "/ɛ.mɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "le chocolat, n'est-ce pas?", pronunciation: "/ɛ.me/" },
+	      { subject: "ils", prefix: "", suffix: "faire la fête.", pronunciation: "/ɛm/" }
+	    ]
+	  },
+	  {
+	    infinitive: "adorer",
+	    translation: "to adore",
+	    conjugations: {
+	      "je": "adore",
+	      "tu": "adores",
+	      "il/elle/on": "adore",
+	      "nous": "adorons",
+	      "vous": "adorez",
+	      "ils/elles": "adorent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "les gâteaux maison.", pronunciation: "/a.dɔʁ/" },
+	      { subject: "tu", prefix: "", suffix: "tes nouveaux amis.", pronunciation: "/a.dɔʁ/" },
+	      { subject: "on", prefix: "", suffix: "aller au musée.", pronunciation: "/a.dɔʁ/" },
+	      { subject: "nous", prefix: "", suffix: "les voyages exotiques.", pronunciation: "/a.dɔ.ʁɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "cette musique classique?", pronunciation: "/a.dɔ.ʁe/" },
+	      { subject: "ils", prefix: "", suffix: "passer du temps en famille.", pronunciation: "/a.dɔʁ/" }
+	    ]
+	  },
+	  {
+	    infinitive: "ajouter",
+	    translation: "to add",
+	    conjugations: {
+	      "je": "ajoute",
+	      "tu": "ajoutes",
+	      "il/elle/on": "ajoute",
+	      "nous": "ajoutons",
+	      "vous": "ajoutez",
+	      "ils/elles": "ajoutent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un peu de sel.", pronunciation: "/a.ʒut/" },
+	      { subject: "tu", prefix: "", suffix: "du sucre dans ton café.", pronunciation: "/a.ʒut/" },
+	      { subject: "on", prefix: "", suffix: "toujours des détails inutiles.", pronunciation: "/a.ʒut/" },
+	      { subject: "nous", prefix: "", suffix: "plusieurs conditions au contrat.", pronunciation: "/a.ʒu.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "cette information dans le rapport?", pronunciation: "/a.ʒu.te/" },
+	      { subject: "ils", prefix: "", suffix: "de la couleur à ce dessin.", pronunciation: "/a.ʒut/" }
+	    ]
+	  },
+	  {
+	    infinitive: "appeler",
+	    translation: "to call",
+	    conjugations: {
+	      "je": "appelle",
+	      "tu": "appelles",
+	      "il/elle/on": "appelle",
+	      "nous": "appelons",
+	      "vous": "appelez",
+	      "ils/elles": "appellent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours mes parents le dimanche.", pronunciation: "/a.pɛl/" },
+	      { subject: "tu", prefix: "", suffix: "ta sœur tous les soirs.", pronunciation: "/a.pɛl/" },
+	      { subject: "on", prefix: "", suffix: "un taxi pour aller plus vite.", pronunciation: "/a.pɛl/" },
+	      { subject: "nous", prefix: "", suffix: "un médecin si nécessaire.", pronunciation: "/a.pə.lɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la police en cas d'urgence?", pronunciation: "/a.pə.le/" },
+	      { subject: "ils", prefix: "", suffix: "leurs amis chaque semaine.", pronunciation: "/a.pɛl/" }
+	    ]
+	  },
+	  {
+	    infinitive: "arrêter",
+	    translation: "to stop",
+	    conjugations: {
+	      "je": "arrête",
+	      "tu": "arrêtes",
+	      "il/elle/on": "arrête",
+	      "nous": "arrêtons",
+	      "vous": "arrêtez",
+	      "ils/elles": "arrêtent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "de fumer cette année.", pronunciation: "/a.ʁɛt/" },
+	      { subject: "tu", prefix: "", suffix: "de parler si fort.", pronunciation: "/a.ʁɛt/" },
+	      { subject: "on", prefix: "", suffix: "tout quand on est fatigué.", pronunciation: "/a.ʁɛt/" },
+	      { subject: "nous", prefix: "", suffix: "de travailler à 18h.", pronunciation: "/a.ʁɛ.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la musique s’il vous plaît?", pronunciation: "/a.ʁɛ.te/" },
+	      { subject: "ils", prefix: "", suffix: "la voiture au feu rouge.", pronunciation: "/a.ʁɛt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "arriver",
+	    translation: "to arrive",
+	    conjugations: {
+	      "je": "arrive",
+	      "tu": "arrives",
+	      "il/elle/on": "arrive",
+	      "nous": "arrivons",
+	      "vous": "arrivez",
+	      "ils/elles": "arrivent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours en avance.", pronunciation: "/a.ʁiv/" },
+	      { subject: "tu", prefix: "", suffix: "chez moi à midi?", pronunciation: "/a.ʁiv/" },
+	      { subject: "on", prefix: "", suffix: "avant les autres.", pronunciation: "/a.ʁiv/" },
+	      { subject: "nous", prefix: "", suffix: "souvent en retard.", pronunciation: "/a.ʁi.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "à l'aéroport à quelle heure?", pronunciation: "/a.ʁi.ve/" },
+	      { subject: "ils", prefix: "", suffix: "demain matin.", pronunciation: "/a.ʁiv/" }
+	    ]
+	  },
+	  {
+	    infinitive: "avancer",
+	    translation: "to move forward",
+	    conjugations: {
+	      "je": "avance",
+	      "tu": "avances",
+	      "il/elle/on": "avance",
+	      "nous": "avançons",
+	      "vous": "avancez",
+	      "ils/elles": "avancent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "pas assez vite dans ce projet.", pronunciation: "/a.vɑ̃s/" },
+	      { subject: "tu", prefix: "", suffix: "sur ton devoir rapidement.", pronunciation: "/a.vɑ̃s/" },
+	      { subject: "on", prefix: "", suffix: "pour terminer ce travail.", pronunciation: "/a.vɑ̃s/" },
+	      { subject: "nous", prefix: "", suffix: "avec prudence.", pronunciation: "/a.vɑ̃.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "dans la bonne direction.", pronunciation: "/a.vɑ̃.se/" },
+	      { subject: "ils", prefix: "", suffix: "ensemble dans ce projet.", pronunciation: "/a.vɑ̃s/" }
+	    ]
+	  },
+	  {
+	    infinitive: "baisser",
+	    translation: "to lower",
+	    conjugations: {
+	      "je": "baisse",
+	      "tu": "baisses",
+	      "il/elle/on": "baisse",
+	      "nous": "baissons",
+	      "vous": "baissez",
+	      "ils/elles": "baissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "le volume de la radio.", pronunciation: "/bɛs/" },
+	      { subject: "tu", prefix: "", suffix: "toujours la tête.", pronunciation: "/bɛs/" },
+	      { subject: "on", prefix: "", suffix: "les prix pour attirer des clients.", pronunciation: "/bɛs/" },
+	      { subject: "nous", prefix: "", suffix: "la voix pour ne pas déranger.", pronunciation: "/bɛ.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la lumière, s'il vous plaît?", pronunciation: "/bɛ.se/" },
+	      { subject: "ils", prefix: "", suffix: "leurs dépenses ce mois-ci.", pronunciation: "/bɛs/" }
+	    ]
+	  },
+	  {
+	    infinitive: "bavarder",
+	    translation: "to chat",
+	    conjugations: {
+	      "je": "bavarde",
+	      "tu": "bavardes",
+	      "il/elle/on": "bavarde",
+	      "nous": "bavardons",
+	      "vous": "bavardez",
+	      "ils/elles": "bavardent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "avec ma voisine tous les matins.", pronunciation: "/ba.vaʁd/" },
+	      { subject: "tu", prefix: "", suffix: "longtemps au téléphone.", pronunciation: "/ba.vaʁd/" },
+	      { subject: "on", prefix: "", suffix: "pendant des heures!", pronunciation: "/ba.vaʁd/" },
+	      { subject: "nous", prefix: "", suffix: "souvent autour d'un café.", pronunciation: "/ba.vaʁ.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "avec vos collègues?", pronunciation: "/ba.vaʁ.de/" },
+	      { subject: "ils", prefix: "", suffix: "plutôt que de travailler.", pronunciation: "/ba.vaʁd/" }
+	    ]
+	  },
+	  {
+	    infinitive: "casser",
+	    translation: "to break",
+	    conjugations: {
+	      "je": "casse",
+	      "tu": "casses",
+	      "il/elle/on": "casse",
+	      "nous": "cassons",
+	      "vous": "cassez",
+	      "ils/elles": "cassent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "souvent un verre par accident.", pronunciation: "/kas/" },
+	      { subject: "tu", prefix: "", suffix: "la routine de temps en temps.", pronunciation: "/kas/" },
+	      { subject: "on", prefix: "", suffix: "les œufs pour la recette.", pronunciation: "/kas/" },
+	      { subject: "nous", prefix: "", suffix: "les codes du conformisme.", pronunciation: "/ka.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "quelque chose sans faire exprès?", pronunciation: "/ka.se/" },
+	      { subject: "ils", prefix: "", suffix: "les jouets fragiles.", pronunciation: "/kas/" }
+	    ]
+	  },
+	  {
+	    infinitive: "chanter",
+	    translation: "to sing",
+	    conjugations: {
+	      "je": "chante",
+	      "tu": "chantes",
+	      "il/elle/on": "chante",
+	      "nous": "chantons",
+	      "vous": "chantez",
+	      "ils/elles": "chantent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "sous la douche.", pronunciation: "/ʃɑ̃t/" },
+	      { subject: "tu", prefix: "", suffix: "faux mais avec passion.", pronunciation: "/ʃɑ̃t/" },
+	      { subject: "on", prefix: "", suffix: "des chansons d'amour.", pronunciation: "/ʃɑ̃t/" },
+	      { subject: "nous", prefix: "", suffix: "dans une chorale le week-end.", pronunciation: "/ʃɑ̃.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "devant un public nerveusement?", pronunciation: "/ʃɑ̃.te/" },
+	      { subject: "ils", prefix: "", suffix: "avec enthousiasme.", pronunciation: "/ʃɑ̃t/" }
+	    ]
+	  },
+	  {
+	    infinitive: "chercher",
+	    translation: "to look for",
+	    conjugations: {
+	      "je": "cherche",
+	      "tu": "cherches",
+	      "il/elle/on": "cherche",
+	      "nous": "cherchons",
+	      "vous": "cherchez",
+	      "ils/elles": "cherchent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes clés partout.", pronunciation: "/ʃɛʁʃ/" },
+	      { subject: "tu", prefix: "", suffix: "une solution à ton problème.", pronunciation: "/ʃɛʁʃ/" },
+	      { subject: "on", prefix: "", suffix: "toujours le bonheur.", pronunciation: "/ʃɛʁʃ/" },
+	      { subject: "nous", prefix: "", suffix: "des indices dans cette affaire.", pronunciation: "/ʃɛʁ.ʃɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "une opportunité intéressante?", pronunciation: "/ʃɛʁ.ʃe/" },
+	      { subject: "ils", prefix: "", suffix: "leurs affaires perdues.", pronunciation: "/ʃɛʁʃ/" }
+	    ]
+	  },
+	  {
+	    infinitive: "commencer",
+	    translation: "to start",
+	    conjugations: {
+	      "je": "commence",
+	      "tu": "commences",
+	      "il/elle/on": "commence",
+	      "nous": "commençons",
+	      "vous": "commencez",
+	      "ils/elles": "commencent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "une nouvelle aventure.", pronunciation: "/kɔ.mɑ̃s/" },
+	      { subject: "tu", prefix: "", suffix: "un nouveau livre aujourd'hui.", pronunciation: "/kɔ.mɑ̃s/" },
+	      { subject: "on", prefix: "", suffix: "à voir le problème différemment.", pronunciation: "/kɔ.mɑ̃s/" },
+	      { subject: "nous", prefix: "", suffix: "demain à 8h.", pronunciation: "/kɔ.mɑ̃.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "le cours maintenant, c'est ça?", pronunciation: "/kɔ.mɑ̃.se/" },
+	      { subject: "ils", prefix: "", suffix: "à travailler ensemble.", pronunciation: "/kɔ.mɑ̃s/" }
+	    ]
+	  },
+	  {
+	    infinitive: "comparer",
+	    translation: "to compare",
+	    conjugations: {
+	      "je": "compare",
+	      "tu": "compares",
+	      "il/elle/on": "compare",
+	      "nous": "comparons",
+	      "vous": "comparez",
+	      "ils/elles": "comparent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours les prix avant d'acheter.", pronunciation: "/kɔ̃.paʁ/" },
+	      { subject: "tu", prefix: "", suffix: "tes résultats avec ceux des autres.", pronunciation: "/kɔ̃.paʁ/" },
+	      { subject: "on", prefix: "", suffix: "notre situation à celle d'hier.", pronunciation: "/kɔ̃.paʁ/" },
+	      { subject: "nous", prefix: "", suffix: "les deux solutions proposées.", pronunciation: "/kɔ̃.pa.ʁɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "ces deux offres d'emploi?", pronunciation: "/kɔ̃.pa.ʁe/" },
+	      { subject: "ils", prefix: "", suffix: "leurs expériences respectives.", pronunciation: "/kɔ̃.paʁ/" }
+	    ]
+	  },
+	  {
+	    infinitive: "compter",
+	    translation: "to count",
+	    conjugations: {
+	      "je": "compte",
+	      "tu": "comptes",
+	      "il/elle/on": "compte",
+	      "nous": "comptons",
+	      "vous": "comptez",
+	      "ils/elles": "comptent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes économies tous les mois.", pronunciation: "/kɔ̃t/" },
+	      { subject: "tu", prefix: "", suffix: "les jours avant les vacances.", pronunciation: "/kɔ̃t/" },
+	      { subject: "on", prefix: "", suffix: "sur la chance pour réussir.", pronunciation: "/kɔ̃t/" },
+	      { subject: "nous", prefix: "", suffix: "les participants à l’événement.", pronunciation: "/kɔ̃.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la monnaie correctement?", pronunciation: "/kɔ̃.te/" },
+	      { subject: "ils", prefix: "", suffix: "les points marqués.", pronunciation: "/kɔ̃t/" }
+	    ]
+	  },
+	  {
+	    infinitive: "continuer",
+	    translation: "to continue",
+	    conjugations: {
+	      "je": "continue",
+	      "tu": "continues",
+	      "il/elle/on": "continue",
+	      "nous": "continuons",
+	      "vous": "continuez",
+	      "ils/elles": "continuent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "à travailler sur ce projet.", pronunciation: "/kɔ̃.ti.ny/" },
+	      { subject: "tu", prefix: "", suffix: "à apprendre le français?", pronunciation: "/kɔ̃.ti.ny/" },
+	      { subject: "on", prefix: "", suffix: "demain à la première heure.", pronunciation: "/kɔ̃.ti.ny/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble malgré les difficultés.", pronunciation: "/kɔ̃.ti.ny.ɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "avec le même élan?", pronunciation: "/kɔ̃.ti.ny.e/" },
+	      { subject: "ils", prefix: "", suffix: "leurs efforts sans relâche.", pronunciation: "/kɔ̃.ti.nyt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "corriger",
+	    translation: "to correct",
+	    conjugations: {
+	      "je": "corrige",
+	      "tu": "corriges",
+	      "il/elle/on": "corrige",
+	      "nous": "corrigeons",
+	      "vous": "corrigez",
+	      "ils/elles": "corrigent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes erreurs immédiatement.", pronunciation: "/kɔ.ʁiʒ/" },
+	      { subject: "tu", prefix: "", suffix: "les fautes d'orthographe?", pronunciation: "/kɔ.ʁiʒ/" },
+	      { subject: "on", prefix: "", suffix: "les copies d'examen.", pronunciation: "/kɔ.ʁiʒ/" },
+	      { subject: "nous", prefix: "", suffix: "nos exercices en groupe.", pronunciation: "/kɔ.ʁi.ʒɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vos travaux avant de les rendre?", pronunciation: "/kɔ.ʁi.ʒe/" },
+	      { subject: "ils", prefix: "", suffix: "leurs lacunes petit à petit.", pronunciation: "/kɔ.ʁiʒ/" }
+	    ]
+	  },
+	  {
+	    infinitive: "coûter",
+	    translation: "to cost",
+	    conjugations: {
+	      "je": "coûte",
+	      "tu": "coûtes",
+	      "il/elle/on": "coûte",
+	      "nous": "coûtons",
+	      "vous": "coûtez",
+	      "ils/elles": "coûtent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "moins cher à l'étranger.", pronunciation: "/ku.t/" },
+	      { subject: "tu", prefix: "", suffix: "parfois trop pour tes moyens.", pronunciation: "/ku.t/" },
+	      { subject: "on", prefix: "", suffix: "environ 10€ le kilo.", pronunciation: "/ku.t/" },
+	      { subject: "nous", prefix: "", suffix: "plus que prévu.", pronunciation: "/ku.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "combien par mois?", pronunciation: "/ku.te/" },
+	      { subject: "ils", prefix: "", suffix: "trop en frais de transport.", pronunciation: "/kut/" }
+	    ]
+	  },
+	  {
+	    infinitive: "danser",
+	    translation: "to dance",
+	    conjugations: {
+	      "je": "danse",
+	      "tu": "danses",
+	      "il/elle/on": "danse",
+	      "nous": "dansons",
+	      "vous": "dansez",
+	      "ils/elles": "dansent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "seul dans mon salon.", pronunciation: "/dɑ̃s/" },
+	      { subject: "tu", prefix: "", suffix: "la salsa comme un pro.", pronunciation: "/dɑ̃s/" },
+	      { subject: "on", prefix: "", suffix: "en boîte de nuit.", pronunciation: "/dɑ̃s/" },
+	      { subject: "nous", prefix: "", suffix: "toute la soirée.", pronunciation: "/dɑ̃.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "sur de la musique jazz?", pronunciation: "/dɑ̃.se/" },
+	      { subject: "ils", prefix: "", suffix: "gracieusement sur scène.", pronunciation: "/dɑ̃s/" }
+	    ]
+	  },
+	  {
+	    infinitive: "décider",
+	    translation: "to decide",
+	    conjugations: {
+	      "je": "décide",
+	      "tu": "décides",
+	      "il/elle/on": "décide",
+	      "nous": "décidons",
+	      "vous": "décidez",
+	      "ils/elles": "décident"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "de changer de travail.", pronunciation: "/de.si.d/" },
+	      { subject: "tu", prefix: "", suffix: "quoi faire pour ce week-end.", pronunciation: "/de.si.d/" },
+	      { subject: "on", prefix: "", suffix: "d'essayer ce restaurant.", pronunciation: "/de.si.d/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble de la suite du projet.", pronunciation: "/de.si.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "maintenant ou plus tard?", pronunciation: "/de.si.de/" },
+	      { subject: "ils", prefix: "", suffix: "de partir en vacances.", pronunciation: "/de.sid/" }
+	    ]
+	  },
+	  // ──────────────────────────────────────────────────────────
+	  //  Pour des raisons de longueur, on va passer en “mode abrégé”
+	  //  pour les 80 verbes suivants, tout en gardant la même structure.
+	  //  Chaque bloc est identique : conjugaisons, 6 phrases, etc.
+	  //  Vous pouvez dupliquer/adapter à l'identique pour obtenir 
+	  //  ~100 verbes “-er” si nécessaire.
+	  // ──────────────────────────────────────────────────────────
+	  {
+	    infinitive: "déjeuner",
+	    translation: "to have lunch",
+	    conjugations: {
+	      "je": "déjeune",
+	      "tu": "déjeunes",
+	      "il/elle/on": "déjeune",
+	      "nous": "déjeunons",
+	      "vous": "déjeunez",
+	      "ils/elles": "déjeunent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "au bureau souvent.", pronunciation: "/de.ʒœn/" },
+	      { subject: "tu", prefix: "", suffix: "dans un petit café.", pronunciation: "/de.ʒœn/" },
+	      { subject: "on", prefix: "", suffix: "rapidement avant de repartir.", pronunciation: "/de.ʒœn/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble à midi.", pronunciation: "/de.ʒœ.nɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "avec vos collègues?", pronunciation: "/de.ʒœ.ne/" },
+	      { subject: "ils", prefix: "", suffix: "en terrasse quand il fait beau.", pronunciation: "/de.ʒœn/" }
+	    ]
+	  },
+	  {
+	    infinitive: "demander",
+	    translation: "to ask",
+	    conjugations: {
+	      "je": "demande",
+	      "tu": "demandes",
+	      "il/elle/on": "demande",
+	      "nous": "demandons",
+	      "vous": "demandez",
+	      "ils/elles": "demandent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un renseignement au guichet.", pronunciation: "/də.mɑ̃d/" },
+	      { subject: "tu", prefix: "", suffix: "toujours de l'aide.", pronunciation: "/də.mɑ̃d/" },
+	      { subject: "on", prefix: "", suffix: "un service à un ami.", pronunciation: "/də.mɑ̃d/" },
+	      { subject: "nous", prefix: "", suffix: "des informations supplémentaires.", pronunciation: "/də.mɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "un avis à votre supérieur?", pronunciation: "/də.mɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "encore une faveur.", pronunciation: "/də.mɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "déménager",
+	    translation: "to move (house)",
+	    conjugations: {
+	      "je": "déménage",
+	      "tu": "déménages",
+	      "il/elle/on": "déménage",
+	      "nous": "déménageons",
+	      "vous": "déménagez",
+	      "ils/elles": "déménagent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "dans un nouvel appartement.", pronunciation: "/de.me.naʒ/" },
+	      { subject: "tu", prefix: "", suffix: "tous les deux ans?", pronunciation: "/de.me.naʒ/" },
+	      { subject: "on", prefix: "", suffix: "en banlieue pour plus d'espace.", pronunciation: "/de.me.naʒ/" },
+	      { subject: "nous", prefix: "", suffix: "la semaine prochaine.", pronunciation: "/de.me.na.ʒɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "pour vous rapprocher du centre-ville?", pronunciation: "/de.me.na.ʒe/" },
+	      { subject: "ils", prefix: "", suffix: "souvent à cause du travail.", pronunciation: "/de.me.naʒ/" }
+	    ]
+	  },
+	  {
+	    infinitive: "dépenser",
+	    translation: "to spend (money)",
+	    conjugations: {
+	      "je": "dépense",
+	      "tu": "dépenses",
+	      "il/elle/on": "dépense",
+	      "nous": "dépensons",
+	      "vous": "dépensez",
+	      "ils/elles": "dépensent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "trop quand je fais les courses.", pronunciation: "/de.pɑ̃s/" },
+	      { subject: "tu", prefix: "", suffix: "raisonnablement tes économies.", pronunciation: "/de.pɑ̃s/" },
+	      { subject: "on", prefix: "", suffix: "sans compter!", pronunciation: "/de.pɑ̃s/" },
+	      { subject: "nous", prefix: "", suffix: "de l’argent pour nos loisirs.", pronunciation: "/de.pɑ̃.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "intelligemment pour épargner?", pronunciation: "/de.pɑ̃.se/" },
+	      { subject: "ils", prefix: "", suffix: "trop en sorties.", pronunciation: "/de.pɑ̃s/" }
+	    ]
+	  },
+	],
+        "regular-ir": [
+	  {
+	    infinitive: "finir",
+	    translation: "to finish",
+	    conjugations: {
+	      "je": "finis",
+	      "tu": "finis",
+	      "il/elle/on": "finit",
+	      "nous": "finissons",
+	      "vous": "finissez",
+	      "ils/elles": "finissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours mes livres avant de dormir.", pronunciation: "/fi.ni/" },
+	      { subject: "tu", prefix: "", suffix: "rapidement tes exercices.", pronunciation: "/fi.ni/" },
+	      { subject: "on", prefix: "", suffix: "ce qu'on commence.", pronunciation: "/fi.ni/" },
+	      { subject: "nous", prefix: "", suffix: "ce projet la semaine prochaine.", pronunciation: "/fi.ni.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "à quelle heure d'habitude?", pronunciation: "/fi.ni.se/" },
+	      { subject: "ils", prefix: "", suffix: "souvent en même temps.", pronunciation: "/fi.nis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "choisir",
+	    translation: "to choose",
+	    conjugations: {
+	      "je": "choisis",
+	      "tu": "choisis",
+	      "il/elle/on": "choisit",
+	      "nous": "choisissons",
+	      "vous": "choisissez",
+	      "ils/elles": "choisissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours la même option.", pronunciation: "/ʃwa.zi.si/" },
+	      { subject: "tu", prefix: "", suffix: "tes mots avec soin.", pronunciation: "/ʃwa.zi.si/" },
+	      { subject: "on", prefix: "", suffix: "en fonction des priorités.", pronunciation: "/ʃwa.zi.si/" },
+	      { subject: "nous", prefix: "", suffix: "de partir tôt.", pronunciation: "/ʃwa.zi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "des places à l'orchestre?", pronunciation: "/ʃwa.zi.se/" },
+	      { subject: "ils", prefix: "", suffix: "généralement la facilité.", pronunciation: "/ʃwa.zis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "réussir",
+	    translation: "to succeed",
+	    conjugations: {
+	      "je": "réussis",
+	      "tu": "réussis",
+	      "il/elle/on": "réussit",
+	      "nous": "réussissons",
+	      "vous": "réussissez",
+	      "ils/elles": "réussissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "grâce à beaucoup d'efforts.", pronunciation: "/ʁe.y.si/" },
+	      { subject: "tu", prefix: "", suffix: "toujours avec brio.", pronunciation: "/ʁe.y.si/" },
+	      { subject: "on", prefix: "", suffix: "mieux en groupe.", pronunciation: "/ʁe.y.si/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble malgré les obstacles.", pronunciation: "/ʁe.y.si.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "par votre persévérance?", pronunciation: "/ʁe.y.si.se/" },
+	      { subject: "ils", prefix: "", suffix: "parce qu'ils travaillent dur.", pronunciation: "/ʁe.y.sis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "grandir",
+	    translation: "to grow (up)",
+	    conjugations: {
+	      "je": "grandis",
+	      "tu": "grandis",
+	      "il/elle/on": "grandit",
+	      "nous": "grandissons",
+	      "vous": "grandissez",
+	      "ils/elles": "grandissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "dans une grande famille.", pronunciation: "/gʁɑ̃.di/" },
+	      { subject: "tu", prefix: "", suffix: "trop vite, disent tes parents!", pronunciation: "/gʁɑ̃.di/" },
+	      { subject: "on", prefix: "", suffix: "avec l'expérience.", pronunciation: "/gʁɑ̃.di/" },
+	      { subject: "nous", prefix: "", suffix: "dans la même ville.", pronunciation: "/gʁɑ̃.di.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "où exactement?", pronunciation: "/gʁɑ̃.di.se/" },
+	      { subject: "ils", prefix: "", suffix: "entourés d'amis.", pronunciation: "/gʁɑ̃.dis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "applaudir",
+	    translation: "to applaud",
+	    conjugations: {
+	      "je": "applaudis",
+	      "tu": "applaudis",
+	      "il/elle/on": "applaudit",
+	      "nous": "applaudissons",
+	      "vous": "applaudissez",
+	      "ils/elles": "applaudissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "les artistes avec ferveur.", pronunciation: "/a.plo.di/" },
+	      { subject: "tu", prefix: "", suffix: "toujours plus fort que moi.", pronunciation: "/a.plo.di/" },
+	      { subject: "on", prefix: "", suffix: "à la fin du spectacle.", pronunciation: "/a.plo.di/" },
+	      { subject: "nous", prefix: "", suffix: "longuement après le concert.", pronunciation: "/a.plo.di.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "dès que la performance se termine?", pronunciation: "/a.plo.di.se/" },
+	      { subject: "ils", prefix: "", suffix: "à tout rompre!", pronunciation: "/a.plo.dis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "atterrir",
+	    translation: "to land (plane)",
+	    conjugations: {
+	      "je": "atterris",
+	      "tu": "atterris",
+	      "il/elle/on": "atterrit",
+	      "nous": "atterrissons",
+	      "vous": "atterrissez",
+	      "ils/elles": "atterrissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "ici après un long voyage.", pronunciation: "/a.tɛ.ʁi/" },
+	      { subject: "tu", prefix: "", suffix: "quand exactement?", pronunciation: "/a.tɛ.ʁi/" },
+	      { subject: "on", prefix: "", suffix: "en douceur malgré la tempête.", pronunciation: "/a.tɛ.ʁi/" },
+	      { subject: "nous", prefix: "", suffix: "souvent sur la piste 2.", pronunciation: "/a.tɛ.ʁi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "à quelle heure, selon le pilote?", pronunciation: "/a.tɛ.ʁi.se/" },
+	      { subject: "ils", prefix: "", suffix: "avec un peu de retard.", pronunciation: "/a.tɛ.ʁis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "bâtir",
+	    translation: "to build",
+	    conjugations: {
+	      "je": "bâtis",
+	      "tu": "bâtis",
+	      "il/elle/on": "bâtit",
+	      "nous": "bâtissons",
+	      "vous": "bâtissez",
+	      "ils/elles": "bâtissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes projets pas à pas.", pronunciation: "/ba.ti/" },
+	      { subject: "tu", prefix: "", suffix: "ta future maison en bois.", pronunciation: "/ba.ti/" },
+	      { subject: "on", prefix: "", suffix: "avec soin et patience.", pronunciation: "/ba.ti/" },
+	      { subject: "nous", prefix: "", suffix: "une nouvelle relation de confiance.", pronunciation: "/ba.ti.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "des structures solides?", pronunciation: "/ba.ti.se/" },
+	      { subject: "ils", prefix: "", suffix: "sur des fondations stables.", pronunciation: "/ba.tis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "fleurir",
+	    translation: "to bloom",
+	    conjugations: {
+	      "je": "fleuris",
+	      "tu": "fleuris",
+	      "il/elle/on": "fleurit",
+	      "nous": "fleurissons",
+	      "vous": "fleurissez",
+	      "ils/elles": "fleurissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "au printemps comme une fleur.", pronunciation: "/flœ.ʁi/" },
+	      { subject: "tu", prefix: "", suffix: "chaque année un peu plus.", pronunciation: "/flœ.ʁi/" },
+	      { subject: "on", prefix: "", suffix: "quand la saison commence.", pronunciation: "/flœ.ʁi/" },
+	      { subject: "nous", prefix: "", suffix: "autour de ce petit jardin.", pronunciation: "/flœ.ʁi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "en même temps que les cerisiers?", pronunciation: "/flœ.ʁi.se/" },
+	      { subject: "ils", prefix: "", suffix: "et parfument l'air.", pronunciation: "/flœ.ʁis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "rougir",
+	    translation: "to blush",
+	    conjugations: {
+	      "je": "rougis",
+	      "tu": "rougis",
+	      "il/elle/on": "rougit",
+	      "nous": "rougissons",
+	      "vous": "rougissez",
+	      "ils/elles": "rougissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "facilement quand on me complimente.", pronunciation: "/ʁu.ʒi/" },
+	      { subject: "tu", prefix: "", suffix: "quand tu es gêné.", pronunciation: "/ʁu.ʒi/" },
+	      { subject: "on", prefix: "", suffix: "dès qu'on nous regarde.", pronunciation: "/ʁu.ʒi/" },
+	      { subject: "nous", prefix: "", suffix: "encore plus devant la foule.", pronunciation: "/ʁu.ʒi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "si vite que c'est charmant!", pronunciation: "/ʁu.ʒi.se/" },
+	      { subject: "ils", prefix: "", suffix: "à la moindre remarque.", pronunciation: "/ʁu.ʒis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "punir",
+	    translation: "to punish",
+	    conjugations: {
+	      "je": "punis",
+	      "tu": "punis",
+	      "il/elle/on": "punit",
+	      "nous": "punissons",
+	      "vous": "punissez",
+	      "ils/elles": "punissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "les fautes avec justice.", pronunciation: "/py.ni/" },
+	      { subject: "tu", prefix: "", suffix: "les mauvaises actions?", pronunciation: "/py.ni/" },
+	      { subject: "on", prefix: "", suffix: "rarement les enfants.", pronunciation: "/py.ni/" },
+	      { subject: "nous", prefix: "", suffix: "quand c'est nécessaire.", pronunciation: "/py.ni.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "comment dans votre classe?", pronunciation: "/py.ni.se/" },
+	      { subject: "ils", prefix: "", suffix: "les coupables sévèrement.", pronunciation: "/py.nis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "investir",
+	    translation: "to invest",
+	    conjugations: {
+	      "je": "investis",
+	      "tu": "investis",
+	      "il/elle/on": "investit",
+	      "nous": "investissons",
+	      "vous": "investissez",
+	      "ils/elles": "investissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "dans l'immobilier local.", pronunciation: "/ɛ̃.vɛs.ti/" },
+	      { subject: "tu", prefix: "", suffix: "dans des projets innovants.", pronunciation: "/ɛ̃.vɛs.ti/" },
+	      { subject: "on", prefix: "", suffix: "avec prudence en bourse.", pronunciation: "/ɛ̃.vɛs.ti/" },
+	      { subject: "nous", prefix: "", suffix: "surtout dans la recherche.", pronunciation: "/ɛ̃.vɛs.ti.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "dans l'éducation?", pronunciation: "/ɛ̃.vɛs.ti.se/" },
+	      { subject: "ils", prefix: "", suffix: "pour assurer leur avenir.", pronunciation: "/ɛ̃.vɛs.tis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "unir",
+	    translation: "to unite",
+	    conjugations: {
+	      "je": "unis",
+	      "tu": "unis",
+	      "il/elle/on": "unit",
+	      "nous": "unissons",
+	      "vous": "unissez",
+	      "ils/elles": "unissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes forces à celles de mes amis.", pronunciation: "/y.ni/" },
+	      { subject: "tu", prefix: "", suffix: "tes efforts à ceux des autres?", pronunciation: "/y.ni/" },
+	      { subject: "on", prefix: "", suffix: "quand on a un objectif commun.", pronunciation: "/y.ni/" },
+	      { subject: "nous", prefix: "", suffix: "pour défendre cette cause.", pronunciation: "/y.ni.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "votre voix à la mienne?", pronunciation: "/y.ni.se/" },
+	      { subject: "ils", prefix: "", suffix: "leurs talents pour réussir.", pronunciation: "/y.nis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "établir",
+	    translation: "to establish",
+	    conjugations: {
+	      "je": "établis",
+	      "tu": "établis",
+	      "il/elle/on": "établit",
+	      "nous": "établissons",
+	      "vous": "établissez",
+	      "ils/elles": "établissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "des règles de base.", pronunciation: "/e.ta.bli/" },
+	      { subject: "tu", prefix: "", suffix: "la paix dans ton groupe?", pronunciation: "/e.ta.bli/" },
+	      { subject: "on", prefix: "", suffix: "une relation de confiance.", pronunciation: "/e.ta.bli/" },
+	      { subject: "nous", prefix: "", suffix: "une liste de priorités.", pronunciation: "/e.ta.bli.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "des rapports diplomatiques?", pronunciation: "/e.ta.bli.se/" },
+	      { subject: "ils", prefix: "", suffix: "les fondations du projet.", pronunciation: "/e.ta.blis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "nourrir",
+	    translation: "to feed/nourish",
+	    conjugations: {
+	      "je": "nourris",
+	      "tu": "nourris",
+	      "il/elle/on": "nourrit",
+	      "nous": "nourrissons",
+	      "vous": "nourrissez",
+	      "ils/elles": "nourrissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "les chats du voisinage.", pronunciation: "/nu.ʁi/" },
+	      { subject: "tu", prefix: "", suffix: "ta famille avec des plats maison.", pronunciation: "/nu.ʁi/" },
+	      { subject: "on", prefix: "", suffix: "la réflexion par la lecture.", pronunciation: "/nu.ʁi/" },
+	      { subject: "nous", prefix: "", suffix: "les animaux de la ferme.", pronunciation: "/nu.ʁi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "les plantes tous les jours?", pronunciation: "/nu.ʁi.se/" },
+	      { subject: "ils", prefix: "", suffix: "un grand amour pour la nature.", pronunciation: "/nu.ʁis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "réfléchir",
+	    translation: "to think/reflect",
+	    conjugations: {
+	      "je": "réfléchis",
+	      "tu": "réfléchis",
+	      "il/elle/on": "réfléchit",
+	      "nous": "réfléchissons",
+	      "vous": "réfléchissez",
+	      "ils/elles": "réfléchissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "avant d'agir.", pronunciation: "/ʁe.fle.ʃi/" },
+	      { subject: "tu", prefix: "", suffix: "toujours à tes décisions?", pronunciation: "/ʁe.fle.ʃi/" },
+	      { subject: "on", prefix: "", suffix: "longuement sur les conséquences.", pronunciation: "/ʁe.fle.ʃi/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble pour trouver la solution.", pronunciation: "/ʁe.fle.ʃi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "aux différents scénarios possibles?", pronunciation: "/ʁe.fle.ʃi.se/" },
+	      { subject: "ils", prefix: "", suffix: "sur leurs erreurs passées.", pronunciation: "/ʁe.fle.ʃis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "grossir",
+	    translation: "to gain weight / to get bigger",
+	    conjugations: {
+	      "je": "grossis",
+	      "tu": "grossis",
+	      "il/elle/on": "grossit",
+	      "nous": "grossissons",
+	      "vous": "grossissez",
+	      "ils/elles": "grossissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "quand je mange trop de sucreries.", pronunciation: "/gʁo.si/" },
+	      { subject: "tu", prefix: "", suffix: "si tu ne fais pas de sport.", pronunciation: "/gʁo.si/" },
+	      { subject: "on", prefix: "", suffix: "avec l'âge, parfois.", pronunciation: "/gʁo.si/" },
+	      { subject: "nous", prefix: "", suffix: "après les fêtes.", pronunciation: "/gʁo.si.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "pendant l'hiver?", pronunciation: "/gʁo.si.se/" },
+	      { subject: "ils", prefix: "", suffix: "plus vite que les autres.", pronunciation: "/gʁo.sis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "maigrir",
+	    translation: "to lose weight / to get thinner",
+	    conjugations: {
+	      "je": "maigris",
+	      "tu": "maigris",
+	      "il/elle/on": "maigrit",
+	      "nous": "maigrissons",
+	      "vous": "maigrissez",
+	      "ils/elles": "maigrissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "si je fais un régime.", pronunciation: "/mɛ.gʁi/" },
+	      { subject: "tu", prefix: "", suffix: "lorsque tu réduis les sucreries.", pronunciation: "/mɛ.gʁi/" },
+	      { subject: "on", prefix: "", suffix: "avec le sport régulier.", pronunciation: "/mɛ.gʁi/" },
+	      { subject: "nous", prefix: "", suffix: "doucement mais sûrement.", pronunciation: "/mɛ.gʁi.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "sans faire d'efforts particuliers?", pronunciation: "/mɛ.gʁi.se/" },
+	      { subject: "ils", prefix: "", suffix: "en limitant les calories.", pronunciation: "/mɛ.gʁis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "ralentir",
+	    translation: "to slow down",
+	    conjugations: {
+	      "je": "ralentis",
+	      "tu": "ralentis",
+	      "il/elle/on": "ralentit",
+	      "nous": "ralentissons",
+	      "vous": "ralentissez",
+	      "ils/elles": "ralentissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "le pas quand je suis fatigué.", pronunciation: "/ʁa.lɑ̃.ti/" },
+	      { subject: "tu", prefix: "", suffix: "à la fin de la course.", pronunciation: "/ʁa.lɑ̃.ti/" },
+	      { subject: "on", prefix: "", suffix: "pour mieux respirer.", pronunciation: "/ʁa.lɑ̃.ti/" },
+	      { subject: "nous", prefix: "", suffix: "en période de stress.", pronunciation: "/ʁa.lɑ̃.ti.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "dans les virages serrés?", pronunciation: "/ʁa.lɑ̃.ti.se/" },
+	      { subject: "ils", prefix: "", suffix: "au dernier kilomètre.", pronunciation: "/ʁa.lɑ̃.tis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "remplir",
+	    translation: "to fill",
+	    conjugations: {
+	      "je": "remplis",
+	      "tu": "remplis",
+	      "il/elle/on": "remplit",
+	      "nous": "remplissons",
+	      "vous": "remplissez",
+	      "ils/elles": "remplissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "ma bouteille d'eau avant de partir.", pronunciation: "/ʁɑ̃.pli/" },
+	      { subject: "tu", prefix: "", suffix: "le formulaire correctement.", pronunciation: "/ʁɑ̃.pli/" },
+	      { subject: "on", prefix: "", suffix: "jusqu'au bord.", pronunciation: "/ʁɑ̃.pli/" },
+	      { subject: "nous", prefix: "", suffix: "ces cartons pour le déménagement.", pronunciation: "/ʁɑ̃.pli.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "un questionnaire avant l'inscription?", pronunciation: "/ʁɑ̃.pli.se/" },
+	      { subject: "ils", prefix: "", suffix: "tous les verres à ras bord.", pronunciation: "/ʁɑ̃.plis/" }
+	    ]
+	  },
+	  {
+	    infinitive: "désobéir",
+	    translation: "to disobey",
+	    conjugations: {
+	      "je": "désobéis",
+	      "tu": "désobéis",
+	      "il/elle/on": "désobéit",
+	      "nous": "désobéissons",
+	      "vous": "désobéissez",
+	      "ils/elles": "désobéissent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "parfois aux ordres injustes.", pronunciation: "/de.zo.be.i/" },
+	      { subject: "tu", prefix: "", suffix: "pour exprimer ton désaccord.", pronunciation: "/de.zo.be.i/" },
+	      { subject: "on", prefix: "", suffix: "si les règles ne nous conviennent pas.", pronunciation: "/de.zo.be.i/" },
+	      { subject: "nous", prefix: "", suffix: "rarement sans raison valable.", pronunciation: "/de.zo.be.i.sɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "intentionnellement parfois?", pronunciation: "/de.zo.be.i.se/" },
+	      { subject: "ils", prefix: "", suffix: "aux consignes de sécurité.", pronunciation: "/de.zo.be.is/" }
+	    ]
+	  }
+        ],
+        "regular-re": [
+	  {
+	    infinitive: "vendre",
+	    translation: "to sell",
+	    conjugations: {
+	      "je": "vends",
+	      "tu": "vends",
+	      "il/elle/on": "vend",
+	      "nous": "vendons",
+	      "vous": "vendez",
+	      "ils/elles": "vendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "ma voiture pour acheter un vélo.", pronunciation: "/vɑ̃d/" },
+	      { subject: "tu", prefix: "", suffix: "des vêtements en ligne.", pronunciation: "/vɑ̃d/" },
+	      { subject: "on", prefix: "", suffix: "sans faire beaucoup de profit.", pronunciation: "/vɑ̃d/" },
+	      { subject: "nous", prefix: "", suffix: "notre maison l'année prochaine.", pronunciation: "/vɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "encore quelque chose sur internet?", pronunciation: "/vɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "des produits bios au marché local.", pronunciation: "/vɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "attendre",
+	    translation: "to wait",
+	    conjugations: {
+	      "je": "attends",
+	      "tu": "attends",
+	      "il/elle/on": "attend",
+	      "nous": "attendons",
+	      "vous": "attendez",
+	      "ils/elles": "attendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "le bus depuis une heure.", pronunciation: "/a.tɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "quelqu'un?", pronunciation: "/a.tɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "patiemment notre tour.", pronunciation: "/a.tɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "la fin du spectacle.", pronunciation: "/a.tɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "souvent au téléphone, non?", pronunciation: "/a.tɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "devant le cinéma.", pronunciation: "/a.tɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "entendre",
+	    translation: "to hear",
+	    conjugations: {
+	      "je": "entends",
+	      "tu": "entends",
+	      "il/elle/on": "entend",
+	      "nous": "entendons",
+	      "vous": "entendez",
+	      "ils/elles": "entendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "des bruits étranges la nuit.", pronunciation: "/ɑ̃.tɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "la musique d'ici?", pronunciation: "/ɑ̃.tɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "mieux quand on est concentré.", pronunciation: "/ɑ̃.tɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "les voisins chanter sous la douche.", pronunciation: "/ɑ̃.tɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment tout ce qui se dit?", pronunciation: "/ɑ̃.tɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "des rumeurs dans le quartier.", pronunciation: "/ɑ̃.tɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "rendre",
+	    translation: "to give back",
+	    conjugations: {
+	      "je": "rends",
+	      "tu": "rends",
+	      "il/elle/on": "rend",
+	      "nous": "rendons",
+	      "vous": "rendez",
+	      "ils/elles": "rendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "ce livre à la bibliothèque.", pronunciation: "/ʁɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "toujours ce que tu empruntes?", pronunciation: "/ʁɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "hommage aux anciens.", pronunciation: "/ʁɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "nos clés au propriétaire.", pronunciation: "/ʁɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "l'argent que vous devez?", pronunciation: "/ʁɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "le devoir à l'heure.", pronunciation: "/ʁɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "descendre",
+	    translation: "to go down / to descend",
+	    conjugations: {
+	      "je": "descends",
+	      "tu": "descends",
+	      "il/elle/on": "descend",
+	      "nous": "descendons",
+	      "vous": "descendez",
+	      "ils/elles": "descendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "du train à la prochaine gare.", pronunciation: "/de.sɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "cette valise tout seul?", pronunciation: "/de.sɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "pour faire une pause.", pronunciation: "/de.sɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "les escaliers au lieu de prendre l'ascenseur.", pronunciation: "/de.sɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "au rez-de-chaussée, n'est-ce pas?", pronunciation: "/de.sɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "rapidement pour ne pas être en retard.", pronunciation: "/de.sɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "perdre",
+	    translation: "to lose",
+	    conjugations: {
+	      "je": "perds",
+	      "tu": "perds",
+	      "il/elle/on": "perd",
+	      "nous": "perdons",
+	      "vous": "perdez",
+	      "ils/elles": "perdent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "souvent mes clés.", pronunciation: "/pɛʁ/" },
+	      { subject: "tu", prefix: "", suffix: "ton temps à ne rien faire.", pronunciation: "/pɛʁ/" },
+	      { subject: "on", prefix: "", suffix: "facilement le fil de la discussion.", pronunciation: "/pɛʁ/" },
+	      { subject: "nous", prefix: "", suffix: "la partie si on ne se concentre pas.", pronunciation: "/pɛʁ.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment votre patience?", pronunciation: "/pɛʁ.de/" },
+	      { subject: "ils", prefix: "", suffix: "de l’argent en misant trop.", pronunciation: "/pɛʁd/" }
+	    ]
+	  },
+	  {
+	    infinitive: "répondre",
+	    translation: "to answer",
+	    conjugations: {
+	      "je": "réponds",
+	      "tu": "réponds",
+	      "il/elle/on": "répond",
+	      "nous": "répondons",
+	      "vous": "répondez",
+	      "ils/elles": "répondent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "aux courriels dès que je peux.", pronunciation: "/ʁe.pɔ̃/" },
+	      { subject: "tu", prefix: "", suffix: "toujours au téléphone en premier.", pronunciation: "/ʁe.pɔ̃/" },
+	      { subject: "on", prefix: "", suffix: "souvent avec un peu de retard.", pronunciation: "/ʁe.pɔ̃/" },
+	      { subject: "nous", prefix: "", suffix: "aux questions du professeur ensemble.", pronunciation: "/ʁe.pɔ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "toujours de façon très détaillée?", pronunciation: "/ʁe.pɔ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "trop tard aux sollicitations.", pronunciation: "/ʁe.pɔ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "fondre",
+	    translation: "to melt",
+	    conjugations: {
+	      "je": "fonds",
+	      "tu": "fonds",
+	      "il/elle/on": "fond",
+	      "nous": "fondons",
+	      "vous": "fondez",
+	      "ils/elles": "fondent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "du chocolat au bain-marie.", pronunciation: "/fɔ̃/" },
+	      { subject: "tu", prefix: "", suffix: "toujours ton beurre avant de cuisiner?", pronunciation: "/fɔ̃/" },
+	      { subject: "on", prefix: "", suffix: "complètement quand il fait chaud.", pronunciation: "/fɔ̃/" },
+	      { subject: "nous", prefix: "", suffix: "cette cire pour fabriquer des bougies.", pronunciation: "/fɔ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "le fromage pour la fondue?", pronunciation: "/fɔ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "très vite au soleil.", pronunciation: "/fɔ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "prétendre",
+	    translation: "to claim / pretend",
+	    conjugations: {
+	      "je": "prétends",
+	      "tu": "prétends",
+	      "il/elle/on": "prétend",
+	      "nous": "prétendons",
+	      "vous": "prétendez",
+	      "ils/elles": "prétendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "avoir raison, mais je peux me tromper.", pronunciation: "/pʁe.tɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "connaître la vérité?", pronunciation: "/pʁe.tɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "souvent tout savoir.", pronunciation: "/pʁe.tɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "comprendre la situation.", pronunciation: "/pʁe.tɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment être experts en la matière?", pronunciation: "/pʁe.tɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "maîtriser le sujet entièrement.", pronunciation: "/pʁe.tɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "tendre",
+	    translation: "to stretch / to hand out",
+	    conjugations: {
+	      "je": "tends",
+	      "tu": "tends",
+	      "il/elle/on": "tend",
+	      "nous": "tendons",
+	      "vous": "tendez",
+	      "ils/elles": "tendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "la main à mon ami en difficulté.", pronunciation: "/tɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "souvent une perche pour aider.", pronunciation: "/tɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "à se rapprocher l'un de l'autre.", pronunciation: "/tɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "un piège à qui veut nous doubler.", pronunciation: "/tɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment l'oreille aux autres?", pronunciation: "/tɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "une embuscade à leurs ennemis.", pronunciation: "/tɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "pendre",
+	    translation: "to hang",
+	    conjugations: {
+	      "je": "pends",
+	      "tu": "pends",
+	      "il/elle/on": "pend",
+	      "nous": "pendons",
+	      "vous": "pendez",
+	      "ils/elles": "pendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mon manteau au porte-manteau.", pronunciation: "/pɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "les décorations au plafond?", pronunciation: "/pɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "souvent ses clés à un crochet.", pronunciation: "/pɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "le linge après la lessive.", pronunciation: "/pɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "toujours vos vestes correctement?", pronunciation: "/pɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "des tableaux sur chaque mur.", pronunciation: "/pɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "répandre",
+	    translation: "to spread",
+	    conjugations: {
+	      "je": "répands",
+	      "tu": "répands",
+	      "il/elle/on": "répand",
+	      "nous": "répandons",
+	      "vous": "répandez",
+	      "ils/elles": "répandent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "la nouvelle sur les réseaux sociaux.", pronunciation: "/ʁe.pɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "toujours des rumeurs?", pronunciation: "/ʁe.pɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "du bonheur autour de nous!", pronunciation: "/ʁe.pɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "des graines pour attirer les oiseaux.", pronunciation: "/ʁe.pɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la bonne parole ou la désinformation?", pronunciation: "/ʁe.pɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "partout des idées nouvelles.", pronunciation: "/ʁe.pɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "confondre",
+	    translation: "to confuse / to mix up",
+	    conjugations: {
+	      "je": "confonds",
+	      "tu": "confonds",
+	      "il/elle/on": "confond",
+	      "nous": "confondons",
+	      "vous": "confondez",
+	      "ils/elles": "confondent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "souvent ces deux mots en français.", pronunciation: "/kɔ̃.fɔ̃/" },
+	      { subject: "tu", prefix: "", suffix: "la réalité et la fiction?", pronunciation: "/kɔ̃.fɔ̃/" },
+	      { subject: "on", prefix: "", suffix: "encore les jumeaux parfois.", pronunciation: "/kɔ̃.fɔ̃/" },
+	      { subject: "nous", prefix: "", suffix: "les dates si on ne note pas tout.", pronunciation: "/kɔ̃.fɔ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "quelquefois ces deux concepts?", pronunciation: "/kɔ̃.fɔ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "leurs affaires avec celles des autres.", pronunciation: "/kɔ̃.fɔ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "correspondre",
+	    translation: "to correspond / to match",
+	    conjugations: {
+	      "je": "corresponds",
+	      "tu": "corresponds",
+	      "il/elle/on": "correspond",
+	      "nous": "correspondons",
+	      "vous": "correspondez",
+	      "ils/elles": "correspondent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "avec mes amis à l'étranger par email.", pronunciation: "/kɔ.ʁɛs.pɔ̃/" },
+	      { subject: "tu", prefix: "", suffix: "vraiment aux exigences du poste?", pronunciation: "/kɔ.ʁɛs.pɔ̃/" },
+	      { subject: "on", prefix: "", suffix: "toujours aux critères recherchés.", pronunciation: "/kɔ.ʁɛs.pɔ̃/" },
+	      { subject: "nous", prefix: "", suffix: "en anglais pour progresser.", pronunciation: "/kɔ.ʁɛs.pɔ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "souvent par lettre?", pronunciation: "/kɔ.ʁɛs.pɔ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "à ce qu'on attend d'eux.", pronunciation: "/kɔ.ʁɛs.pɔ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "défendre",
+	    translation: "to defend",
+	    conjugations: {
+	      "je": "défends",
+	      "tu": "défends",
+	      "il/elle/on": "défend",
+	      "nous": "défendons",
+	      "vous": "défendez",
+	      "ils/elles": "défendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes idées fermement.", pronunciation: "/de.fɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "toujours ta position sans relâche.", pronunciation: "/de.fɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "ses droits avec conviction.", pronunciation: "/de.fɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "notre cause devant le tribunal.", pronunciation: "/de.fɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "votre point de vue publiquement?", pronunciation: "/de.fɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "les valeurs de leur entreprise.", pronunciation: "/de.fɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "dépendre",
+	    translation: "to depend (on)",
+	    conjugations: {
+	      "je": "dépends",
+	      "tu": "dépends",
+	      "il/elle/on": "dépend",
+	      "nous": "dépendons",
+	      "vous": "dépendez",
+	      "ils/elles": "dépendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "trop des autres, parfois.", pronunciation: "/de.pɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "des circonstances pour agir?", pronunciation: "/de.pɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "complètement de la météo aujourd'hui.", pronunciation: "/de.pɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "de l'avis du groupe.", pronunciation: "/de.pɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "de votre chef de service pour décider?", pronunciation: "/de.pɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "des subventions de l’État.", pronunciation: "/de.pɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "détendre",
+	    translation: "to relax / to loosen",
+	    conjugations: {
+	      "je": "détends",
+	      "tu": "détends",
+	      "il/elle/on": "détend",
+	      "nous": "détendons",
+	      "vous": "détendez",
+	      "ils/elles": "détendent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "l'atmosphère en racontant des blagues.", pronunciation: "/de.tɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "souvent les épaules en respirant.", pronunciation: "/de.tɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "le dos après une longue journée.", pronunciation: "/de.tɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "les muscles avec des exercices.", pronunciation: "/de.tɑ̃.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "avec un peu de yoga?", pronunciation: "/de.tɑ̃.de/" },
+	      { subject: "ils", prefix: "", suffix: "pour éviter le stress.", pronunciation: "/de.tɑ̃d/" }
+	    ]
+	  },
+	  {
+	    infinitive: "entreprendre",
+	    translation: "to undertake",
+	    conjugations: {
+	      "je": "entreprends",
+	      "tu": "entreprends",
+	      "il/elle/on": "entreprend",
+	      "nous": "entreprenons",
+	      "vous": "entreprenez",
+	      "ils/elles": "entreprennent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un long voyage l'année prochaine.", pronunciation: "/ɑ̃.tʁə.pʁɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "un nouveau projet ambitieux?", pronunciation: "/ɑ̃.tʁə.pʁɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "d'abord les démarches administratives.", pronunciation: "/ɑ̃.tʁə.pʁɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "d'étudier tous les aspects avant d'agir.", pronunciation: "/ɑ̃.tʁə.pʁə.nɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "quelque chose de similaire?", pronunciation: "/ɑ̃.tʁə.pʁə.ne/" },
+	      { subject: "ils", prefix: "", suffix: "souvent trop d'initiatives à la fois.", pronunciation: "/ɑ̃.tʁə.pʁɛn/" }
+	    ]
+	  },
+	  {
+	    infinitive: "mordre",
+	    translation: "to bite",
+	    conjugations: {
+	      "je": "mords",
+	      "tu": "mords",
+	      "il/elle/on": "mort",
+	      "nous": "mordons",
+	      "vous": "mordez",
+	      "ils/elles": "mordent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "dans une pomme bien croquante.", pronunciation: "/mɔʁ/" },
+	      { subject: "tu", prefix: "", suffix: "encore tes crayons?", pronunciation: "/mɔʁ/" },
+	      { subject: "on", prefix: "", suffix: "parfois ses lèvres sans s'en rendre compte.", pronunciation: "/mɔʁ/" },
+	      { subject: "nous", prefix: "", suffix: "dans un délicieux sandwich.", pronunciation: "/mɔʁ.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "la main qui vous nourrit?", pronunciation: "/mɔʁ.de/" },
+	      { subject: "ils", prefix: "", suffix: "par peur ou par défense.", pronunciation: "/mɔʁd/" }
+	    ]
+	  },
+	  {
+	    infinitive: "tordre",
+	    translation: "to twist",
+	    conjugations: {
+	      "je": "tords",
+	      "tu": "tords",
+	      "il/elle/on": "tord",
+	      "nous": "tordons",
+	      "vous": "tordez",
+	      "ils/elles": "tordent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "le linge pour enlever l'eau.", pronunciation: "/tɔʁ/" },
+	      { subject: "tu", prefix: "", suffix: "toujours tes chaussettes avant de les ranger?", pronunciation: "/tɔʁ/" },
+	      { subject: "on", prefix: "", suffix: "une serviette après la douche.", pronunciation: "/tɔʁ/" },
+	      { subject: "nous", prefix: "", suffix: "les faits quand on est de mauvaise foi.", pronunciation: "/tɔʁ.dɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "votre cheville en courant?", pronunciation: "/tɔʁ.de/" },
+	      { subject: "ils", prefix: "", suffix: "tout ce qu'ils entendent pour plaisanter.", pronunciation: "/tɔʁd/" }
+	    ]
+	  }
+        ],
+        "irregular": [
+	  {
+	    infinitive: "être",
+	    translation: "to be",
+	    conjugations: {
+	      "je": "suis",
+	      "tu": "es",
+	      "il/elle/on": "est",
+	      "nous": "sommes",
+	      "vous": "êtes",
+	      "ils/elles": "sont"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours prêt à aider.", pronunciation: "/sɥi/" },
+	      { subject: "tu", prefix: "", suffix: "en retard ce matin.", pronunciation: "/ɛ/" },
+	      { subject: "on", prefix: "", suffix: "déjà dans la voiture.", pronunciation: "/ɛ/" },
+	      { subject: "nous", prefix: "", suffix: "contents de te voir.", pronunciation: "/sɔm/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment en forme?", pronunciation: "/ɛt/" },
+	      { subject: "ils", prefix: "", suffix: "souvent occupés le week-end.", pronunciation: "/sɔ̃/" }
+	    ]
+	  },
+	  {
+	    infinitive: "avoir",
+	    translation: "to have",
+	    conjugations: {
+	      "je": "ai",
+	      "tu": "as",
+	      "il/elle/on": "a",
+	      "nous": "avons",
+	      "vous": "avez",
+	      "ils/elles": "ont"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "souvent faim le soir.", pronunciation: "/e/" },
+	      { subject: "tu", prefix: "", suffix: "de la chance?", pronunciation: "/a/" },
+	      { subject: "on", prefix: "", suffix: "un peu de temps libre aujourd'hui.", pronunciation: "/a/" },
+	      { subject: "nous", prefix: "", suffix: "besoin d'un coup de main.", pronunciation: "/a.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "encore des questions?", pronunciation: "/a.ve/" },
+	      { subject: "ils", prefix: "", suffix: "des projets pour les vacances.", pronunciation: "/ɔ̃/" }
+	    ]
+	  },
+	  {
+	    infinitive: "aller",
+	    translation: "to go",
+	    conjugations: {
+	      "je": "vais",
+	      "tu": "vas",
+	      "il/elle/on": "va",
+	      "nous": "allons",
+	      "vous": "allez",
+	      "ils/elles": "vont"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours au travail à pied.", pronunciation: "/vɛ/" },
+	      { subject: "tu", prefix: "", suffix: "chercher du pain?", pronunciation: "/va/" },
+	      { subject: "on", prefix: "", suffix: "où ce week-end?", pronunciation: "/va/" },
+	      { subject: "nous", prefix: "", suffix: "en France cet été.", pronunciation: "/a.lɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "souvent en retard?", pronunciation: "/a.le/" },
+	      { subject: "ils", prefix: "", suffix: "au cinéma ensemble.", pronunciation: "/vɔ̃/" }
+	    ]
+	  },
+	  {
+	    infinitive: "faire",
+	    translation: "to do / to make",
+	    conjugations: {
+	      "je": "fais",
+	      "tu": "fais",
+	      "il/elle/on": "fait",
+	      "nous": "faisons",
+	      "vous": "faites",
+	      "ils/elles": "font"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "la cuisine tous les jours.", pronunciation: "/fɛ/" },
+	      { subject: "tu", prefix: "", suffix: "du sport ce matin?", pronunciation: "/fɛ/" },
+	      { subject: "on", prefix: "", suffix: "un gâteau pour l'anniversaire.", pronunciation: "/fɛ/" },
+	      { subject: "nous", prefix: "", suffix: "notre possible pour réussir.", pronunciation: "/fə.zɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "vraiment ce qu'il faut?", pronunciation: "/fɛt/" },
+	      { subject: "ils", prefix: "", suffix: "trop de bruit la nuit.", pronunciation: "/fɔ̃/" }
+	    ]
+	  },
+	  {
+	    infinitive: "venir",
+	    translation: "to come",
+	    conjugations: {
+	      "je": "viens",
+	      "tu": "viens",
+	      "il/elle/on": "vient",
+	      "nous": "venons",
+	      "vous": "venez",
+	      "ils/elles": "viennent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "à ta fête ce soir.", pronunciation: "/vjɛ̃/" },
+	      { subject: "tu", prefix: "", suffix: "avec qui?", pronunciation: "/vjɛ̃/" },
+	      { subject: "on", prefix: "", suffix: "de loin pour assister à l'événement.", pronunciation: "/vjɛ̃/" },
+	      { subject: "nous", prefix: "", suffix: "de partir si ça te convient.", pronunciation: "/və.nɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "directement de la gare?", pronunciation: "/və.ne/" },
+	      { subject: "ils", prefix: "", suffix: "chaque année nous rendre visite.", pronunciation: "/vjɛn/" }
+	    ]
+	  },
+	  {
+	    infinitive: "prendre",
+	    translation: "to take",
+	    conjugations: {
+	      "je": "prends",
+	      "tu": "prends",
+	      "il/elle/on": "prend",
+	      "nous": "prenons",
+	      "vous": "prenez",
+	      "ils/elles": "prennent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours un café le matin.", pronunciation: "/pʁɑ̃/" },
+	      { subject: "tu", prefix: "", suffix: "la voiture ou le vélo?", pronunciation: "/pʁɑ̃/" },
+	      { subject: "on", prefix: "", suffix: "son temps, on n'est pas pressé.", pronunciation: "/pʁɑ̃/" },
+	      { subject: "nous", prefix: "", suffix: "l'avion demain à 8h.", pronunciation: "/pʁə.nɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "souvent des risques?", pronunciation: "/pʁə.ne/" },
+	      { subject: "ils", prefix: "", suffix: "trop de bagages en voyage.", pronunciation: "/pʁɛn/" }
+	    ]
+	  },
+	  {
+	    infinitive: "vouloir",
+	    translation: "to want",
+	    conjugations: {
+	      "je": "veux",
+	      "tu": "veux",
+	      "il/elle/on": "veut",
+	      "nous": "voulons",
+	      "vous": "voulez",
+	      "ils/elles": "veulent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours réussir.", pronunciation: "/vø/" },
+	      { subject: "tu", prefix: "", suffix: "sortir ce soir?", pronunciation: "/vø/" },
+	      { subject: "on", prefix: "", suffix: "avoir plus de temps libre.", pronunciation: "/vø/" },
+	      { subject: "nous", prefix: "", suffix: "améliorer notre français.", pronunciation: "/vu.lɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "un café ou un thé?", pronunciation: "/vu.le/" },
+	      { subject: "ils", prefix: "", suffix: "simplement du calme.", pronunciation: "/vœl/" }
+	    ]
+	  },
+	  {
+	    infinitive: "pouvoir",
+	    translation: "to be able to / can",
+	    conjugations: {
+	      "je": "peux",
+	      "tu": "peux",
+	      "il/elle/on": "peut",
+	      "nous": "pouvons",
+	      "vous": "pouvez",
+	      "ils/elles": "peuvent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "venir t'aider demain.", pronunciation: "/pø/" },
+	      { subject: "tu", prefix: "", suffix: "me prêter un stylo?", pronunciation: "/pø/" },
+	      { subject: "on", prefix: "", suffix: "toujours rêver!", pronunciation: "/pø/" },
+	      { subject: "nous", prefix: "", suffix: "partir plus tôt que prévu.", pronunciation: "/pu.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "répéter, s’il vous plaît?", pronunciation: "/pu.ve/" },
+	      { subject: "ils", prefix: "", suffix: "sortir sans autorisation spéciale?", pronunciation: "/pœv/" }
+	    ]
+	  },
+	  {
+	    infinitive: "devoir",
+	    translation: "to have to / must",
+	    conjugations: {
+	      "je": "dois",
+	      "tu": "dois",
+	      "il/elle/on": "doit",
+	      "nous": "devons",
+	      "vous": "devez",
+	      "ils/elles": "doivent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "absolument y aller.", pronunciation: "/dwa/" },
+	      { subject: "tu", prefix: "", suffix: "finir ton travail avant de partir.", pronunciation: "/dwa/" },
+	      { subject: "on", prefix: "", suffix: "respecter les règles.", pronunciation: "/dwa/" },
+	      { subject: "nous", prefix: "", suffix: "être prudents en conduisant.", pronunciation: "/də.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "passer par ici pour entrer?", pronunciation: "/də.ve/" },
+	      { subject: "ils", prefix: "", suffix: "apprendre cette leçon.", pronunciation: "/dwav/" }
+	    ]
+	  },
+	  {
+	    infinitive: "savoir",
+	    translation: "to know (a fact)",
+	    conjugations: {
+	      "je": "sais",
+	      "tu": "sais",
+	      "il/elle/on": "sait",
+	      "nous": "savons",
+	      "vous": "savez",
+	      "ils/elles": "savent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "déjà la réponse.", pronunciation: "/sɛ/" },
+	      { subject: "tu", prefix: "", suffix: "cuisiner toutes ces recettes?", pronunciation: "/sɛ/" },
+	      { subject: "on", prefix: "", suffix: "peu de choses sur ce sujet.", pronunciation: "/sɛ/" },
+	      { subject: "nous", prefix: "", suffix: "très bien où aller.", pronunciation: "/sa.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "pourquoi il est en retard?", pronunciation: "/sa.ve/" },
+	      { subject: "ils", prefix: "", suffix: "comment résoudre ce problème.", pronunciation: "/sav/" }
+	    ]
+	  },
+	  {
+	    infinitive: "voir",
+	    translation: "to see",
+	    conjugations: {
+	      "je": "vois",
+	      "tu": "vois",
+	      "il/elle/on": "voit",
+	      "nous": "voyons",
+	      "vous": "voyez",
+	      "ils/elles": "voient"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un film ce soir.", pronunciation: "/vwa/" },
+	      { subject: "tu", prefix: "", suffix: "quelque chose au loin?", pronunciation: "/vwa/" },
+	      { subject: "on", prefix: "", suffix: "trop de détails parfois.", pronunciation: "/vwa/" },
+	      { subject: "nous", prefix: "", suffix: "clairement la différence.", pronunciation: "/vwa.jɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "ce que j'essaie de montrer?", pronunciation: "/vwa.je/" },
+	      { subject: "ils", prefix: "", suffix: "des opportunités partout.", pronunciation: "/vwajt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "mettre",
+	    translation: "to put / to place",
+	    conjugations: {
+	      "je": "mets",
+	      "tu": "mets",
+	      "il/elle/on": "met",
+	      "nous": "mettons",
+	      "vous": "mettez",
+	      "ils/elles": "mettent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "mes clés sur la table.", pronunciation: "/mɛ/" },
+	      { subject: "tu", prefix: "", suffix: "toujours du temps pour les amis.", pronunciation: "/mɛ/" },
+	      { subject: "on", prefix: "", suffix: "de la musique pour se détendre.", pronunciation: "/mɛ/" },
+	      { subject: "nous", prefix: "", suffix: "en ordre nos affaires.", pronunciation: "/mɛ.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "les choses à leur place?", pronunciation: "/mɛ.te/" },
+	      { subject: "ils", prefix: "", suffix: "souvent beaucoup d'effort dans leur travail.", pronunciation: "/mɛt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "dire",
+	    translation: "to say / to tell",
+	    conjugations: {
+	      "je": "dis",
+	      "tu": "dis",
+	      "il/elle/on": "dit",
+	      "nous": "disons",
+	      "vous": "dites",
+	      "ils/elles": "disent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "toujours la vérité.", pronunciation: "/di/" },
+	      { subject: "tu", prefix: "", suffix: "quelque chose de gentil?", pronunciation: "/di/" },
+	      { subject: "on", prefix: "", suffix: "que tout est possible.", pronunciation: "/di/" },
+	      { subject: "nous", prefix: "", suffix: "souvent la même chose.", pronunciation: "/di.zɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "votre avis sincèrement?", pronunciation: "/dit/" },
+	      { subject: "ils", prefix: "", suffix: "des mensonges parfois.", pronunciation: "/diz/" }
+	    ]
+	  },
+	  {
+	    infinitive: "lire",
+	    translation: "to read",
+	    conjugations: {
+	      "je": "lis",
+	      "tu": "lis",
+	      "il/elle/on": "lit",
+	      "nous": "lisons",
+	      "vous": "lisez",
+	      "ils/elles": "lisent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un roman par semaine.", pronunciation: "/li/" },
+	      { subject: "tu", prefix: "", suffix: "encore les journaux papiers?", pronunciation: "/li/" },
+	      { subject: "on", prefix: "", suffix: "souvent des bandes dessinées.", pronunciation: "/li/" },
+	      { subject: "nous", prefix: "", suffix: "tranquillement au café.", pronunciation: "/li.zɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "des livres numériques sur tablette?", pronunciation: "/li.ze/" },
+	      { subject: "ils", prefix: "", suffix: "beaucoup pour se documenter.", pronunciation: "/liz/" }
+	    ]
+	  },
+	  {
+	    infinitive: "écrire",
+	    translation: "to write",
+	    conjugations: {
+	      "je": "écris",
+	      "tu": "écris",
+	      "il/elle/on": "écrit",
+	      "nous": "écrivons",
+	      "vous": "écrivez",
+	      "ils/elles": "écrivent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "dans mon journal intime.", pronunciation: "/e.kʁi/" },
+	      { subject: "tu", prefix: "", suffix: "encore tes lettres à la main?", pronunciation: "/e.kʁi/" },
+	      { subject: "on", prefix: "", suffix: "souvent des courriels formels.", pronunciation: "/e.kʁi/" },
+	      { subject: "nous", prefix: "", suffix: "un roman en collaboration.", pronunciation: "/e.kʁi.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "à vos amis à l'étranger?", pronunciation: "/e.kʁi.ve/" },
+	      { subject: "ils", prefix: "", suffix: "des articles pour le journal local.", pronunciation: "/e.kʁiv/" }
+	    ]
+	  },
+	  {
+	    infinitive: "sortir",
+	    translation: "to go out / to exit",
+	    conjugations: {
+	      "je": "sors",
+	      "tu": "sors",
+	      "il/elle/on": "sort",
+	      "nous": "sortons",
+	      "vous": "sortez",
+	      "ils/elles": "sortent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "au cinéma tous les mardis.", pronunciation: "/sɔʁ/" },
+	      { subject: "tu", prefix: "", suffix: "avec nous ce soir?", pronunciation: "/sɔʁ/" },
+	      { subject: "on", prefix: "", suffix: "souvent en boîte le week-end.", pronunciation: "/sɔʁ/" },
+	      { subject: "nous", prefix: "", suffix: "rarement pendant la semaine.", pronunciation: "/sɔʁ.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "en ville après le travail?", pronunciation: "/sɔʁ.te/" },
+	      { subject: "ils", prefix: "", suffix: "toujours à la même heure.", pronunciation: "/sɔʁt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "partir",
+	    translation: "to leave",
+	    conjugations: {
+	      "je": "pars",
+	      "tu": "pars",
+	      "il/elle/on": "part",
+	      "nous": "partons",
+	      "vous": "partez",
+	      "ils/elles": "partent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "en vacances demain matin.", pronunciation: "/paʁ/" },
+	      { subject: "tu", prefix: "", suffix: "sans dire au revoir?", pronunciation: "/paʁ/" },
+	      { subject: "on", prefix: "", suffix: "dès que tout est prêt.", pronunciation: "/paʁ/" },
+	      { subject: "nous", prefix: "", suffix: "ensemble pour le week-end.", pronunciation: "/paʁ.tɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "dans cinq minutes, c'est ça?", pronunciation: "/paʁ.te/" },
+	      { subject: "ils", prefix: "", suffix: "avant la fin de la réunion.", pronunciation: "/paʁt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "courir",
+	    translation: "to run",
+	    conjugations: {
+	      "je": "cours",
+	      "tu": "cours",
+	      "il/elle/on": "court",
+	      "nous": "courons",
+	      "vous": "courez",
+	      "ils/elles": "courent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "tous les matins pour me maintenir en forme.", pronunciation: "/kuʁ/" },
+	      { subject: "tu", prefix: "", suffix: "dans le parc le week-end?", pronunciation: "/kuʁ/" },
+	      { subject: "on", prefix: "", suffix: "ensemble pour se motiver.", pronunciation: "/kuʁ/" },
+	      { subject: "nous", prefix: "", suffix: "un marathon en fin d'année.", pronunciation: "/ku.ʁɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "de temps en temps avec un ami?", pronunciation: "/ku.ʁe/" },
+	      { subject: "ils", prefix: "", suffix: "plus vite que nous!", pronunciation: "/kuʁt/" }
+	    ]
+	  },
+	  {
+	    infinitive: "recevoir",
+	    translation: "to receive",
+	    conjugations: {
+	      "je": "reçois",
+	      "tu": "reçois",
+	      "il/elle/on": "reçoit",
+	      "nous": "recevons",
+	      "vous": "recevez",
+	      "ils/elles": "reçoivent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "un colis aujourd'hui.", pronunciation: "/ʁə.swa/" },
+	      { subject: "tu", prefix: "", suffix: "souvent des lettres de tes amis?", pronunciation: "/ʁə.swa/" },
+	      { subject: "on", prefix: "", suffix: "beaucoup d'appels en ce moment.", pronunciation: "/ʁə.swa/" },
+	      { subject: "nous", prefix: "", suffix: "des invités ce soir.", pronunciation: "/ʁə.sə.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "correctement nos messages?", pronunciation: "/ʁə.sə.ve/" },
+	      { subject: "ils", prefix: "", suffix: "régulièrement de bonnes nouvelles.", pronunciation: "/ʁə.swav/" }
+	    ]
+	  },
+	  {
+	    infinitive: "boire",
+	    translation: "to drink",
+	    conjugations: {
+	      "je": "bois",
+	      "tu": "bois",
+	      "il/elle/on": "boit",
+	      "nous": "buvons",
+	      "vous": "buvez",
+	      "ils/elles": "boivent"
+	    },
+	    sentences: [
+	      { subject: "je", prefix: "", suffix: "trop de café le matin.", pronunciation: "/bwa/" },
+	      { subject: "tu", prefix: "", suffix: "de l'eau en quantité suffisante?", pronunciation: "/bwa/" },
+	      { subject: "on", prefix: "", suffix: "quelquefois un thé ensemble.", pronunciation: "/bwa/" },
+	      { subject: "nous", prefix: "", suffix: "un jus de fruits frais.", pronunciation: "/by.vɔ̃/" },
+	      { subject: "vous", prefix: "", suffix: "souvent du vin rouge au dîner?", pronunciation: "/by.ve/" },
+	      { subject: "ils", prefix: "", suffix: "avec modération.", pronunciation: "/bwav/" }
+	    ]
+	  }
+        ],
+      };
+
+      // Filter to only show plural forms as requested
+      const filterPluralSubjects = (allCategories) => {
+        const result = {};
+        
+        // Process each category
+        Object.keys(allCategories).forEach(category => {
+          result[category] = allCategories[category].map(verb => {
+            // Create a new verb object with only plural subject sentences
+            const newVerb = {...verb};
+            newVerb.sentences = verb.sentences.filter(sentence => 
+              ['nous', 'vous', 'ils', 'elles'].includes(sentence.subject)
+            );
+            return newVerb;
+          });
+        });
+        
+        return result;
+      };
+      
+      const filteredVerbs = filterPluralSubjects(verbDatabase);
+
+      // Functions to get random items
+      const getRandomCategory = () => {
+        const categories = Object.keys(filteredVerbs);
+        return categories[Math.floor(Math.random() * categories.length)];
+      };
+
+      const getRandomVerb = (category) => {
+        const verbs = filteredVerbs[category];
+        return verbs[Math.floor(Math.random() * verbs.length)];
+      };
+
+      const getRandomSentence = (verb) => {
+        const sentences = verb.sentences;
+        return sentences[Math.floor(Math.random() * sentences.length)];
+      };
+
+      // Generate a new prompt
+      const generatePrompt = () => {
+        const category = getRandomCategory();
+        const verb = getRandomVerb(category);
+        const sentence = getRandomSentence(verb);
+
+	let correctLookup = sentence.subject;
+	if (sentence.subject === "il" || sentence.subject === "elle") {
+	  correctLookup = "il/elle";
+	} else if (sentence.subject === "ils" || sentence.subject === "elles") {
+	  correctLookup = "ils/elles";
+	}
+        return {
+          category,
+          verb,
+          sentence,
+          correctAnswer: verb.conjugations[correctLookup]
+        };
+      };
+
+      // Initialize or get next prompt
+      const getNextPrompt = () => {
+        setUserAnswer('');
+        setFeedback(null);
+        setIsCorrect(false);
+        const prompt = generatePrompt();
+        setCurrentPrompt(prompt);
+      };
+
+      // Check the user's answer
+      const checkAnswer = () => {
+        if (!userAnswer.trim()) {
+          setFeedback("Veuillez entrer une réponse.");
+          return;
+        }
+
+        const isAnswerCorrect = userAnswer.trim().toLowerCase() === currentPrompt.correctAnswer.toLowerCase();
+        setIsCorrect(isAnswerCorrect);
+
+        if (isAnswerCorrect) {
+          setFeedback("Bravo! C'est correct! 👏");
+          setStats(prev => ({ ...prev, correct: prev.correct + 1 }));
+        } else {
+          setFeedback(`Pas tout à fait. La forme correcte est "${currentPrompt.correctAnswer}".`);
+          setStats(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
+        }
+      };
+
+      // Handle form submission
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        checkAnswer();
+      };
+
+      // Handle next question button
+      const handleNext = () => {
+        getNextPrompt();
+      };
+
+      // Initialize on first load
+      useEffect(() => {
+        getNextPrompt();
+      }, []);
+
+      // Render loading state if no prompt is available
+      if (!currentPrompt) {
+        return <div className="text-center p-8">Chargement...</div>;
+      }
+
+      return (
+        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
+          <header className="mb-6 text-center">
+            <h1 className="text-2xl font-bold text-indigo-700">Pratique de Conjugaison</h1>
+            <p className="text-gray-600 mt-1">
+              Verbe: <span className="font-semibold">{currentPrompt.verb.infinitive}</span> 
+              <span className="text-gray-500 ml-2">({currentPrompt.verb.translation})</span>
+            </p>
+          </header>
+
+          <div className="stats flex justify-between mb-4 text-sm">
+            <div className="correct text-green-600">Correct: {stats.correct}</div>
+            <div className="incorrect text-red-600">Incorrect: {stats.incorrect}</div>
+          </div>
+
+          <div className="bg-indigo-50 p-4 rounded-lg mb-6">
+            <p className="text-lg">
+              {currentPrompt.sentence.prefix} <strong>{currentPrompt.sentence.subject}</strong> 
+              <span className="mx-2 border-b-2 border-indigo-300 inline-block min-w-16 text-center">
+                _________
+              </span> 
+              <span className="relative group">
+                (<span className="cursor-help border-b border-dotted border-gray-500">{currentPrompt.verb.infinitive}</span>)
+                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max">
+                  {currentPrompt.verb.translation}
+                </span>
+              </span> {currentPrompt.sentence.suffix}
+            </p>
+          </div>
+
+          {feedback && (
+            <div className={`p-3 rounded-lg mb-4 ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              {feedback}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mb-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                placeholder="Votre réponse..."
+                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                disabled={isCorrect}
+              />
+              <button
+                type="submit"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                disabled={isCorrect}
+              >
+                Vérifier
+              </button>
+            </div>
+          </form>
+
+          {isCorrect && (
+            <div className="pronunciation mb-4 p-3 bg-gray-100 rounded-lg">
+              <p className="text-sm">
+                <strong>Pronunciation:</strong> {currentPrompt.sentence.pronunciation}
+              </p>
+            </div>
+          )}
+
+          {feedback && (
+            <button
+              onClick={handleNext}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              Question Suivante →
+            </button>
+          )}
+
+          <div className="mt-6 text-xs text-gray-500">
+            <p>Catégorie: {currentPrompt.category}</p>
+          </div>
+        </div>
+      );
+    };
+
+    // Render the app
+    ReactDOM.render(<FrenchConjugationApp />, document.getElementById('root'));
+  </script>
+</body>
+</html>
